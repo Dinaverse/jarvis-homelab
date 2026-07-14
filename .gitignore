@@ -1,0 +1,8 @@
+# Secrets & local artifacts — never commit
+*.key
+*.pem
+id_*
+*.env.local
+.env
+secrets/
+*.log
