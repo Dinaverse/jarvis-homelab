@@ -55,19 +55,19 @@ flowchart TB
         WS["Workstation<br/>Microsoft Edge<br/>jarvis-hud.html (file://)"]
     end
 
-    subgraph host["Proxmox VE host  ·  'dina'  ·  100.71.115.27"]
+    subgraph host["Proxmox VE host  ·  'dina'  ·  <PROXMOX_HOST_TAILSCALE_IP>"]
         direction TB
-        NAT["iptables DNAT<br/>:11434 → 192.168.1.113:11434"]
+        NAT["iptables DNAT<br/>:11434 → <CT106_LAN_IP>:11434"]
         subgraph lxc["Unprivileged LXC containers"]
             C101["CT101 · docker-services"]
             C102["CT102 · nginx-proxy"]
             C104["CT104 · home-assistant"]
             C105["CT105 · openclaw"]
-            C106["CT106 · openjarvis<br/>192.168.1.113<br/>Ollama 0.31.2 + Phi-3.5"]
+            C106["CT106 · openjarvis<br/><CT106_LAN_IP><br/>Ollama 0.31.2 + Phi-3.5"]
         end
     end
 
-    WS -- "HTTPS-over-WireGuard<br/>http://100.71.115.27:11434" --> NAT
+    WS -- "HTTPS-over-WireGuard<br/>http://<PROXMOX_HOST_TAILSCALE_IP>:11434" --> NAT
     NAT --> C106
     C106 -- "streamed JSON<br/>/api/chat" --> WS
 ```
@@ -76,10 +76,10 @@ The request path is worth calling out because it is the clever bit of plumbing t
 the front end trivially simple:
 
 1. The HUD is just a **static file** opened in the browser. It has no backend of its own.
-2. It POSTs to `http://100.71.115.27:11434/api/chat` — the **Proxmox host's Tailscale
+2. It POSTs to `http://<PROXMOX_HOST_TAILSCALE_IP>:11434/api/chat` — the **Proxmox host's Tailscale
    address**.
 3. The host has an `iptables` **DNAT** rule that rewrites any traffic arriving on
-   `:11434` to `192.168.1.113:11434`, i.e. straight into **CT106**.
+   `:11434` to `<CT106_LAN_IP>:11434`, i.e. straight into **CT106**.
 4. Ollama in CT106 listens on `0.0.0.0:11434` with `OLLAMA_ORIGINS=*`, so the `file://`
    HUD is allowed to call it cross-origin.
 
@@ -97,7 +97,7 @@ never had to expose anything to the public internet or run a reverse proxy for i
 | Hostname | `dina` |
 | CPU | 8 cores |
 | RAM | 16 GB (≈15 GiB usable) |
-| Tailscale IP | `100.71.115.27` |
+| Tailscale IP | `<PROXMOX_HOST_TAILSCALE_IP>` |
 | LAN | `192.168.1.0/24` |
 
 Proxmox was chosen over bare Docker or a single VM because LXC containers are cheap —
@@ -129,7 +129,7 @@ serve a local LLM.
 | RAM | 4 GB |
 | Disk | 32 GB (`local-lvm`) |
 | Type | Unprivileged LXC (`nesting=1, keyctl=1`) |
-| Network | DHCP on `eth0` → `192.168.1.113/24` |
+| Network | DHCP on `eth0` → `<CT106_LAN_IP>/24` |
 | Inference engine | Ollama 0.31.2 |
 | Model | `phi3.5:latest` (id `61819fb370a3`, 2.2 GB) |
 
@@ -178,7 +178,7 @@ that into container-local traffic with one PREROUTING rule:
 ```bash
 # On the Proxmox host — forward the Ollama port into CT106
 iptables -t nat -A PREROUTING -p tcp --dport 11434 \
-    -j DNAT --to-destination 192.168.1.113:11434
+    -j DNAT --to-destination <CT106_LAN_IP>:11434
 ```
 
 Because Tailscale is a WireGuard mesh, every one of my devices already trusts this address
@@ -207,7 +207,7 @@ Under the theming it's a tight little Ollama client:
 The endpoint is a single constant at the top of the script:
 
 ```js
-const OL = 'http://100.71.115.27:11434';   // Proxmox host (Tailscale) → DNAT → CT106
+const OL = 'http://<PROXMOX_HOST_TAILSCALE_IP>:11434';   // Proxmox host (Tailscale) → DNAT → CT106
 ```
 
 That one line is the entire "integration." Everything else is presentation.

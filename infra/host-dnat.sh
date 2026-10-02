@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-CT_IP="192.168.1.113"   # CT106 openjarvis
+CT_IP="<CT106_LAN_IP>"   # CT106 openjarvis
 PORT="11434"            # Ollama
 
 iptables -t nat -C PREROUTING -p tcp --dport "${PORT}" \

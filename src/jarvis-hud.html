@@ -128,8 +128,8 @@ footer{position:relative;z-index:10;background:linear-gradient(0deg,rgba(0,18,30
   </div>
   <div class="dstrip">
     <div class="di">TIME <span id="clk">--:--:--</span></div>
-    <div class="di">NODE <span>CT106 &middot; 192.168.1.113</span></div>
-    <div class="di">UPLINK <span>TAILSCALE &middot; 100.71.115.27</span></div>
+    <div class="di">NODE <span>CT106 &middot; <CT106_LAN_IP></span></div>
+    <div class="di">UPLINK <span>TAILSCALE &middot; <PROXMOX_HOST_TAILSCALE_IP></span></div>
     <div class="di">VOICE <span>WHISPER medium.en &middot; CUDA</span></div>
     <div class="di">INFERENCE <span id="is">INITIALIZING...</span></div>
   </div>
@@ -177,7 +177,7 @@ footer{position:relative;z-index:10;background:linear-gradient(0deg,rgba(0,18,30
 </footer>
 
 <script>
-const OL='http://100.71.115.27:11434';
+const OL='http://<PROXMOX_HOST_TAILSCALE_IP>:11434';
 let mdl='phi3.5',hist=[],busy=false;
 const SUGG=['How does the arc reactor work?','Write a Python port scanner','Explain quantum entanglement','Run a threat analysis','Optimize my bash script','What is the Fermi paradox?'];
 
